@@ -42,41 +42,52 @@ dt = 0.01;
 A = np.matrix('0 0 1 0; 0 0 0 1; 0 0 0 0; 0 0 0 0');
 B = np.matrix('0 0; 0 0; 1 0; 0 1');
 
-print A
-print B
-
 L = 10;
-M = 2;
+M = 1;
 
-v_init = 1;
+v_init = 2;
 x_init = np.matrix([0,-L, 0, v_init]).transpose();
 x_final = np.matrix([L,0, v_init, 0]).transpose();
 
 def func(params):
-    # l1 = params[0];
-    # l2 = 0; #params[1];
-    # l3 = params[1];#params[2];
-    # l4 = 0; #params[3];
-    # T = params[2];#params[4];
     l1 = params[0];
     l2 = params[1];
     l3 = params[2];
     l4 = params[3];
     T = params[4];
-
     x_current = x_init;
-    for t in np.arange(0,T+dt,dt):
-        den = np.sqrt(np.square(l1*t - l3) + np.square(l2*t - l4));
-        ux = -M* (l1*t - l3)/den;
-        uy = -M* (l2*t - l4)/den;
 
-        U_current = np.matrix([[ux],[uy]]);
-        x_current_dot = A*x_current + B*U_current;
-        x_current = x_current + x_current_dot*dt;
+    if T <= 0:
+        print 'T <= 0:'
+        print T
 
-    print np.linalg.norm(x_current - x_final)
+    if (np.sqrt(np.square(l1/l3 - l2/l4))) < 0.001:
+        print 'daz'
+        for t in np.arange(0,T+dt,dt):
+            den = np.sqrt(np.square(l3) + np.square(l4));
+            ux = M* (l3/den)*np.sign((l1/l3)*t-1);
+            uy = M* (l4/den)*np.sign((l1/l3)*t-1);
+
+            U_current = np.matrix([[ux],[uy]]);
+            x_current_dot = A*x_current + B*U_current;
+            x_current = x_current + x_current_dot*dt;
+
+    else:
+        for t in np.arange(0,T+dt,dt):
+            den = np.sqrt(np.square(l1*t - l3) + np.square(l2*t - l4));
+            ux = M* (l1*t - l3)/den;
+            uy = M* (l2*t - l4)/den;
+
+            U_current = np.matrix([[ux],[uy]]);
+            x_current_dot = A*x_current + B*U_current;
+            x_current = x_current + x_current_dot*dt;
+
+    #print np.linalg.norm(x_current - x_final)
     return np.linalg.norm(x_current - x_final);
 
+def func_cons(params):
+    T = params[3];
+    return T;
 
 def draw_solution(params):
     l1 = params[0];
@@ -97,8 +108,8 @@ def draw_solution(params):
     x_current = x_init;
     for t in np.arange(0,T+dt, dt):
         den = np.sqrt(np.square(l1*t - l3) + np.square(l2*t - l4));
-        ux = -M* (l1*t - l3)/den;
-        uy = -M* (l2*t - l4)/den;
+        ux = M* (l1*t - l3)/den;
+        uy = M* (l2*t - l4)/den;
         # ux = M* (l1*t - l3);
         # uy = 0;
 
@@ -151,9 +162,22 @@ def draw_solution(params):
 
     plt.show();
 
-p_init = np.array([0.1,0.2,0.2,0.3,10]);
-param = opt.minimize(func, p_init,method='Nelder-Mead')
-print param
-print func(param.x)
+
+#Define Constraint
+cons = ({'type': 'ineq', 'fun': lambda x : func_cons(x)});
+
+for i in range(100):
+    l_init = np.random.uniform(-10,10,4);
+    T_init = np.random.uniform(0,20,1);
+
+    p_init = np.append(l_init, T_init);
+    param = opt.minimize(func, p_init, constraints=cons)
+    
+    print func(param.x);
+    print p_init;
+    print param.x;
+
+    if func(param.x) < 0.1:
+        break;
 
 draw_solution(param.x)

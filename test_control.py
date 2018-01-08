@@ -46,7 +46,7 @@ B = np.matrix('0 0; 0 0; 1 0; 0 1');
 L = 10;
 M = 1;
 
-v_init = 2;
+v_init = 10;
 x_init = np.matrix([0,-L, 0, v_init]).transpose();
 x_final = np.matrix([L,0, v_init, 0]).transpose();
 
@@ -125,9 +125,9 @@ def func(params):
                        xf[3] - x_final[3,0],
                        0]); 
 
-    return result;
+    #return result;
 
-    #return np.linalg.norm(result);
+    return np.linalg.norm(result);
 
 def func_cons(params):
     T = params[4];
@@ -237,8 +237,8 @@ for i in range(100):
     p_init = np.append(l_init, T_init);
     p_init = p_init.flatten()
     #print p_init
-    #param = opt.minimize(func, p_init, constraints=cons)
-    param = opt.root(func, p_init, method='lm')
+    param = opt.minimize(func, p_init, constraints=cons)
+    #param = opt.root(func, p_init, method='lm')
 
     print 'Solution:'
     print func(param.x);

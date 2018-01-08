@@ -42,7 +42,7 @@ dt = 0.01;
 A = np.matrix('0 0 1 0; 0 0 0 1; 0 0 0 0; 0 0 0 0');
 B = np.matrix('0 0; 0 0; 1 0; 0 1');
 
-L = 10;
+L = 1;
 M = 1;
 
 v_init = 2;
@@ -50,11 +50,18 @@ x_init = np.matrix([0,-L, 0, v_init]).transpose();
 x_final = np.matrix([L,0, v_init, 0]).transpose();
 
 def func(params):
+    # l1 = params[0];
+    # l2 = params[1];
+    # l3 = params[2];
+    # l4 = params[3];
+    # T = params[4];
     l1 = params[0];
-    l2 = params[1];
-    l3 = params[2];
-    l4 = params[3];
-    T = params[4];
+    l2 = params[0];
+    l3 = params[1];
+    l4 = params[2];
+    T = params[3];
+
+
     x_current = x_init;
 
     if T <= 0:
@@ -65,8 +72,8 @@ def func(params):
         print 'daz'
         for t in np.arange(0,T+dt,dt):
             den = np.sqrt(np.square(l3) + np.square(l4));
-            ux = M* (l3/den)*np.sign((l1/l3)*t-1);
-            uy = M* (l4/den)*np.sign((l1/l3)*t-1);
+            ux = -M* (l3/den)*np.sign((l1/l3)*t-1);
+            uy = -M* (l4/den)*np.sign((l1/l3)*t-1);
 
             U_current = np.matrix([[ux],[uy]]);
             x_current_dot = A*x_current + B*U_current;
@@ -75,26 +82,41 @@ def func(params):
     else:
         for t in np.arange(0,T+dt,dt):
             den = np.sqrt(np.square(l1*t - l3) + np.square(l2*t - l4));
-            ux = M* (l1*t - l3)/den;
-            uy = M* (l2*t - l4)/den;
+            ux = -M* (l1*t - l3)/den;
+            uy = -M* (l2*t - l4)/den;
 
             U_current = np.matrix([[ux],[uy]]);
             x_current_dot = A*x_current + B*U_current;
             x_current = x_current + x_current_dot*dt;
 
-    #print np.linalg.norm(x_current - x_final)
-    return np.linalg.norm(x_current - x_final);
+
+    result = np.array([]); 
+    result = np.append(result, (x_current - x_final)[0,0]);
+    result = np.append(result, (x_current - x_final)[1,0]);
+    result = np.append(result, (x_current - x_final)[2,0]);
+    result = np.append(result, (x_current - x_final)[3,0]);
+    result = np.append(result, 0);
+
+    return result;
+
+    #return np.linalg.norm(x_current - x_final);
 
 def func_cons(params):
     T = params[3];
     return T;
 
 def draw_solution(params):
+    # l1 = params[0];
+    # l2 = params[1];
+    # l3 = params[2];
+    # l4 = params[3];
+    # T = params[4];
     l1 = params[0];
-    l2 = params[1];
-    l3 = params[2];
-    l4 = params[3];
-    T = params[4];
+    l2 = params[0];
+    l3 = params[1];
+    l4 = params[2];
+    T = params[3];
+
 
     ux_array = np.array([]);
     uy_array = np.array([]);
@@ -108,8 +130,8 @@ def draw_solution(params):
     x_current = x_init;
     for t in np.arange(0,T+dt, dt):
         den = np.sqrt(np.square(l1*t - l3) + np.square(l2*t - l4));
-        ux = M* (l1*t - l3)/den;
-        uy = M* (l2*t - l4)/den;
+        ux = -M* (l1*t - l3)/den;
+        uy = -M* (l2*t - l4)/den;
         # ux = M* (l1*t - l3);
         # uy = 0;
 
@@ -166,18 +188,27 @@ def draw_solution(params):
 #Define Constraint
 cons = ({'type': 'ineq', 'fun': lambda x : func_cons(x)});
 
+a = 2;
+delta_t = 0.05;
 for i in range(100):
-    l_init = np.random.uniform(-10,10,4);
-    T_init = np.random.uniform(0,20,1);
+    l_init = np.random.uniform(0,5,3);
+    T_init = np.random.uniform(0,30,1);
 
+    T_init = a + i*delta_t;
     p_init = np.append(l_init, T_init);
-    param = opt.minimize(func, p_init, constraints=cons)
-    
+    p_init = p_init.flatten()
+    #print p_init
+    #param = opt.minimize(func, p_init, constraints=cons)
+    param = opt.root(func, p_init, method='lm')
+
+    print 'Solution:'
     print func(param.x);
     print p_init;
     print param.x;
+    print ' '
 
-    if func(param.x) < 0.1:
+    if np.linalg.norm(func(param.x)) < 0.1:
+        print 'break'
         break;
 
 draw_solution(param.x)

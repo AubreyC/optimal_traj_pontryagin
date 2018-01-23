@@ -171,11 +171,10 @@ def find_control(x_cond_init, x_cond_final, M):
         param = opt.minimize(func, p_init, constraints=cons, args=(x_cond_init, x_cond_final, M))
 
         if np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)) < 0.1:
-            print 'Converged: '
-            print np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M));
-            print 'with param: '
-            print param.x;
-
+            print 'Converged: %d' %(np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)));
+            print 'With param: %s' %(str(param.x));
+            print 'For Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final))
+            print 'Maximum acceleration (L2 norm): %d' %(M);
             break;
 
     return param.x;

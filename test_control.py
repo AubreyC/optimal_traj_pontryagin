@@ -7,17 +7,8 @@ import scipy.integrate as integrate
 A = np.matrix('0 0 1 0; 0 0 0 1; 0 0 0 0; 0 0 0 0');
 B = np.matrix('0 0; 0 0; 1 0; 0 1');
 
-# Define initial and final conditions
-L = 10;
-M = 1;
-v_init = 8;
-x_init = np.matrix([0,-L, 0, v_init]).transpose();
-x_final = np.matrix([L,0, v_init, 0]).transpose();
-
-
-
 # The Control input according to the Pontryagin's Maximum Principle
-def func_accel(t, lam, ind):
+def func_accel(t, lam, M, ind):
     l1 = float(lam[0]);
     l2 = float(lam[1]);
     l3 = float(lam[2]);
@@ -36,17 +27,18 @@ def func_accel(t, lam, ind):
     return u[ind];
 
 # The acceleration by integrating of the control input
-def func_vel(t, lam, v0, ind):
-    result = integrate.quad(func_accel, 0, t, args=(lam, ind));
+def func_vel(t, lam, M, v0, ind):
+    result = integrate.quad(func_accel, 0, t, args=(lam, M, ind));
     return  result[0] + v0[ind] 
 
 # The position by integrating of the control velocity
-def func_pos(t, lam, x0, v0, ind):
-    result = integrate.quad(func_vel, 0, t, args=(lam, v0, ind));
+def func_pos(t, lam, M, x0, v0, ind):
+    result = integrate.quad(func_vel, 0, t, args=(lam, M, v0, ind));
     return result[0] + x0[ind] 
 
 # Compute the trajectory based on the paramaters
-def func(opti_params):
+def func(opti_params, x_cond_init, x_cond_final, M):
+
     l1 = float(opti_params[0]);
     l2 = float(opti_params[1]);
     l3 = float(opti_params[2]);
@@ -54,19 +46,19 @@ def func(opti_params):
     T =  float(opti_params[4]);
 
     lam = np.array([l1,l2,l3,l4])
-    x0 = x_init[0:2];
-    v0 = x_init[2:4];
+    x0 = x_cond_init[0:2];
+    v0 = x_cond_init[2:4];
 
     xf = np.array([0.,0.,0.,0.]);
-    xf[0] = func_pos(T, lam,x0, v0,0)
-    xf[1] = func_pos(T, lam,x0, v0,1)
-    xf[2] = func_vel(T, lam, v0,0)
-    xf[3] = func_vel(T, lam, v0,1)
+    xf[0] = func_pos(T, lam, M, x0, v0, 0)
+    xf[1] = func_pos(T, lam, M, x0, v0, 1)
+    xf[2] = func_vel(T, lam, M, v0, 0)
+    xf[3] = func_vel(T, lam, M, v0, 1)
 
-    result = np.array([xf[0] - x_final[0,0],
-                       xf[1] - x_final[1,0],
-                       xf[2] - x_final[2,0],
-                       xf[3] - x_final[3,0],
+    result = np.array([xf[0] - x_cond_final[0,0],
+                       xf[1] - x_cond_final[1,0],
+                       xf[2] - x_cond_final[2,0],
+                       xf[3] - x_cond_final[3,0],
                        0]); 
 
     return np.linalg.norm(result);
@@ -77,12 +69,14 @@ def func_cons(opti_params):
     return T;
 
 # Draw the solution
-def draw_solution(opti_params):
+def draw_solution(opti_params, x_cond_init, x_cond_final, M):
     l1 = float(opti_params[0]);
     l2 = float(opti_params[1]);
     l3 = float(opti_params[2]);
     l4 = float(opti_params[3]);
     T =  float(opti_params[4]);
+
+    lam = np.array([l1,l2,l3,l4])
 
     # Step used to draw solution
     dt = 0.01;
@@ -97,48 +91,25 @@ def draw_solution(opti_params):
     x_array = np.array([]);
     y_array = np.array([]);
 
-    x_current = x_init;
+    x_current = x_cond_init;
 
 
-    if (np.sqrt(np.square(l1/l3 - l2/l4))) < 0.001:
-        for t in np.arange(0,T+dt,dt):
-            den = np.sqrt(np.square(l3) + np.square(l4));
-            ux = -M* (l3/den)*np.sign((l1/l3)*t-1);
-            uy = -M* (l4/den)*np.sign((l1/l3)*t-1);
+    for t in np.arange(0,T+dt,dt):
+        ux = func_accel(t, lam, M, 0);
+        uy = func_accel(t, lam, M, 1);
 
-            U_current = np.matrix([[ux],[uy]]);
-            x_current_dot = A*x_current + B*U_current;
-            x_current = x_current + x_current_dot*dt;
+        U_current = np.matrix([[ux],[uy]]);
+        x_current_dot = A*x_current + B*U_current;
+        x_current = x_current + x_current_dot*dt;
 
-            ux_array = np.append(ux_array, ux);
-            uy_array = np.append(uy_array, uy);
+        ux_array = np.append(ux_array, ux);
+        uy_array = np.append(uy_array, uy);
 
-            vx_array = np.append(vx_array, x_current[2]);
-            vy_array = np.append(vy_array, x_current[3]);
+        vx_array = np.append(vx_array, x_current[2]);
+        vy_array = np.append(vy_array, x_current[3]);
 
-            x_array = np.append(x_array, x_current[0]);
-            y_array = np.append(y_array, x_current[1]);
-
-
-    else:
-        for t in np.arange(0,T+dt,dt):
-            den = np.sqrt(np.square(l1*t - l3) + np.square(l2*t - l4));
-            ux = -M* (l1*t - l3)/den;
-            uy = -M* (l2*t - l4)/den;
-
-            U_current = np.matrix([[ux],[uy]]);
-            x_current_dot = A*x_current + B*U_current;
-            x_current = x_current + x_current_dot*dt;
-
-            ux_array = np.append(ux_array, ux);
-            uy_array = np.append(uy_array, uy);
-
-            vx_array = np.append(vx_array, x_current[2]);
-            vy_array = np.append(vy_array, x_current[3]);
-
-            x_array = np.append(x_array, x_current[0]);
-            y_array = np.append(y_array, x_current[1]);
-
+        x_array = np.append(x_array, x_current[0]);
+        y_array = np.append(y_array, x_current[1]);
 
     plt.figure()
     #Plotting Control ux
@@ -181,26 +152,40 @@ def draw_solution(opti_params):
     plt.xlabel('uy')
     plt.show();
 
-#Define Constraint: Only on time
-cons = ({'type': 'ineq', 'fun': lambda x : func_cons(x)});
 
-# Optimization problem with random initial condition to avoid local minimum
-for i in range(100):
-    l_init = np.random.uniform(0,5,4);
-    T_init = np.random.uniform(0,30,1);
+def find_control(x_cond_init, x_cond_final, M):
 
-    p_init = np.append(l_init, T_init);
-    p_init = p_init.flatten()
-    param = opt.minimize(func, p_init, constraints=cons)
+    #Define Constraint: Only on time
+    cons = ({'type': 'ineq', 'fun': lambda x : func_cons(x)});
 
-    print 'Solution:'
-    print func(param.x);
-    print p_init;
-    print param.x;
-    print ' '
+    # Optimization problem with random initial condition to avoid local minimum
+    for i in range(100):
 
-    if np.linalg.norm(func(param.x)) < 0.1:
-        print 'break'
-        break;
+        l_init = np.random.uniform(0,5,4);
+        T_init = np.random.uniform(0,30,1);
 
-draw_solution(param.x)
+        p_init = np.append(l_init, T_init);
+        p_init = p_init.flatten()
+
+        # Run the minimization
+        param = opt.minimize(func, p_init, constraints=cons, args=(x_cond_init, x_cond_final, M))
+
+        if np.linalg.norm(func(param.x)) < 0.1:
+            print 'Converged: '
+            print func(param.x);
+            print 'with param: '
+            print param.x;
+
+            break;
+
+    return param.x;
+
+# Define initial and final conditions
+L = 10;
+M = 1;
+v_init = 2;
+x_init = np.matrix([0,-L, 0, v_init]).transpose();
+x_final = np.matrix([L,0, v_init, 0]).transpose();
+
+sol_param = find_control(x_init, x_final, M);
+draw_solution(sol_param);

@@ -170,9 +170,9 @@ def find_control(x_cond_init, x_cond_final, M):
         # Run the minimization
         param = opt.minimize(func, p_init, constraints=cons, args=(x_cond_init, x_cond_final, M))
 
-        if np.linalg.norm(func(param.x)) < 0.1:
+        if np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)) < 0.1:
             print 'Converged: '
-            print func(param.x);
+            print np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M));
             print 'with param: '
             print param.x;
 
@@ -183,9 +183,9 @@ def find_control(x_cond_init, x_cond_final, M):
 # Define initial and final conditions
 L = 10;
 M = 1;
-v_init = 2;
+v_init = 7;
 x_init = np.matrix([0,-L, 0, v_init]).transpose();
 x_final = np.matrix([L,0, v_init, 0]).transpose();
 
 sol_param = find_control(x_init, x_final, M);
-draw_solution(sol_param);
+draw_solution(sol_param, x_init, x_final, M);

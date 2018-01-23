@@ -68,7 +68,7 @@ def func_cons(opti_params):
     return T;
 
 # Draw the solution
-def draw_solution(opti_params, x_cond_init, x_cond_final, M):
+def draw_solution(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, save_csv = False):
     l1 = float(opti_params[0]);
     l2 = float(opti_params[1]);
     l3 = float(opti_params[2]);
@@ -91,9 +91,10 @@ def draw_solution(opti_params, x_cond_init, x_cond_final, M):
     y_array = np.array([]);
 
     x_current = np.matrix(x_cond_init).transpose();
+    t_array = np.arange(0,T+dt,dt);
 
 
-    for t in np.arange(0,T+dt,dt):
+    for t in t_array:
         ux = func_accel(t, lam, M, 0);
         uy = func_accel(t, lam, M, 1);
 
@@ -110,47 +111,85 @@ def draw_solution(opti_params, x_cond_init, x_cond_final, M):
         x_array = np.append(x_array, x_current[0]);
         y_array = np.append(y_array, x_current[1]);
 
-    plt.figure()
-    #Plotting Control ux
-    plt.subplot(211)
-    plt.plot(np.arange(0,T+dt, dt), ux_array);
-    plt.ylabel('ux')
-    plt.xlabel('time (s)')
 
-    # plotting control uy
-    plt.subplot(212)
-    plt.plot(np.arange(0,T+dt, dt), uy_array);
-    plt.ylabel('uy')
-    plt.xlabel('time (s)')
+    ## Save the trajectory as a CSV to be plotted using pgfplot (Latex)
+    if save_csv:
+        # Create data (subsampled):
+        sub_sampling = 50;
+        data = np.array([t_array[0::sub_sampling], x_array[0::sub_sampling], y_array[0::sub_sampling], vx_array[0::sub_sampling], vy_array[0::sub_sampling]]).transpose();
 
-    plt.figure()
-    #Plotting Control ux
-    plt.subplot(211)
-    plt.plot(np.arange(0,T+dt, dt), vx_array);
-    plt.ylabel('vx')
-    plt.xlabel('time (s)')
+        # Create commented first line with all the information
+        param_comment = '# Param mu: %s, Time: %s' %(str(opti_params[0:-1]), opti_params[-1]);
+        cond_comment = '# Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final));
+        accel_comment = '# Maximum acceleration (L2 norm): %d' %(M);
+        csv_comment = 't, x, y, vx, vy';
+        header_comment = '%s\n%s\n%s\n%s' %(param_comment, cond_comment, accel_comment, csv_comment);
+        
+        # Create name for the CSV (pretty dirty naming...)
+        name_csv = 'traj_';
+        for i in range(len(x_cond_init)):
+            if i == len(x_cond_init) - 1:
+                name_csv = name_csv + str(x_cond_init[i]); 
+            else:
+                name_csv = name_csv + str(x_cond_init[i]) + ';';
+        name_csv = name_csv + '_';
+        for i in range(len(x_cond_final)):
+            if i == len(x_cond_final) - 1:
+                name_csv = name_csv + str(x_cond_final[i]); 
+            else:
+                name_csv = name_csv + str(x_cond_final[i]) + ';';
+        name_csv = name_csv + '_' + str(M) + '.csv';
+        
+        # Save as CSV
+        np.savetxt(name_csv, data, header=header_comment, fmt='%4.6f',delimiter=',', comments='');
 
-    # plotting control uy
-    plt.subplot(212)
-    plt.plot(np.arange(0,T+dt, dt), vy_array);
-    plt.ylabel('vy')
-    plt.xlabel('time (s)')
+    # Plot in desired
+    if plot_bool:
 
-    plt.figure()
-    plt.subplot(111)
-    #Plotting Control ux
-    plt.quiver(x_array[0::50], y_array[0::50], vx_array[0::50], vy_array[0::50], units='width')
-    plt.plot(x_array, y_array);
-    plt.ylabel('y')
-    plt.xlabel('x')
+        # Plotting control:
+        plt.figure()
+        
+        #Control ux
+        plt.subplot(211)
+        plt.plot(np.arange(0,T+dt, dt), ux_array);
+        plt.ylabel('ux')
+        plt.xlabel('time (s)')
 
-    plt.figure()
-    #Plotting Control
-    plt.plot(ux_array, uy_array);
-    plt.ylabel('ux')
-    plt.xlabel('uy')
-    plt.show();
+        #Control uy
+        plt.subplot(212)
+        plt.plot(np.arange(0,T+dt, dt), uy_array);
+        plt.ylabel('uy')
+        plt.xlabel('time (s)')
 
+        # Plotting position and velocity
+        plt.figure()
+        plt.subplot(111)
+        plt.quiver(x_array[0::50], y_array[0::50], vx_array[0::50], vy_array[0::50], units='width')
+        plt.plot(x_array, y_array);
+        plt.ylabel('y (m)')
+        plt.xlabel('x (m)')
+
+        # Plot control [ux, uy] so it should like like a circle
+        # plt.figure()
+        # plt.plot(ux_array, uy_array);
+        # plt.ylabel('ux')
+        # plt.xlabel('uy')
+        # plt.show();
+
+        # Plot velocity
+        # plt.figure()
+
+        # Plot vx
+        # plt.subplot(211)
+        # plt.plot(np.arange(0,T+dt, dt), vx_array);
+        # plt.ylabel('vx')
+        # plt.xlabel('time (s)')
+
+        # Plot vy
+        # plt.subplot(212)
+        # plt.plot(np.arange(0,T+dt, dt), vy_array);
+        # plt.ylabel('vy')
+        # plt.xlabel('time (s)')
 
 def find_control(x_cond_init, x_cond_final, M):
 
@@ -171,19 +210,26 @@ def find_control(x_cond_init, x_cond_final, M):
 
         if np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)) < 0.1:
             print 'Converged: %s' %(np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)));
-            print 'With param mu: %s, Time: %s' %(str(param.x[0:-2]), param.x[-1]);
+            print 'With param mu: %s, Time: %s' %(str(param.x[0:-1]), param.x[-1]);
             print 'Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final))
             print 'Maximum acceleration (L2 norm): %d' %(M);
             break;
 
     return param.x;
 
-# Define initial and final conditions
-L = 10;
-M = 1;
-v_init = 7;
-x_init = np.array([0,-L, 0, v_init]);
-x_final = np.array([L,0, v_init, 0]);
+if __name__ == "__main__":
 
-sol_param = find_control(x_init, x_final, M);
-draw_solution(sol_param, x_init, x_final, M);
+    # Run code for several velocity:
+    L = 10;
+    M = 1;
+    for v_init in np.arange(0.5, 6, 0.5):
+
+        # Define init and final state
+        x_init = np.array([0,-L, 0, v_init]);
+        x_final = np.array([L,0, v_init, 0]);
+
+        # Solve the system
+        sol_param = find_control(x_init, x_final, M);
+        
+        # Draw or save the trajectories
+        draw_solution(sol_param, x_init, x_final, M, False, True);

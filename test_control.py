@@ -55,11 +55,10 @@ def func(opti_params, x_cond_init, x_cond_final, M):
     xf[2] = func_vel(T, lam, M, v0, 0)
     xf[3] = func_vel(T, lam, M, v0, 1)
 
-    result = np.array([xf[0] - x_cond_final[0,0],
-                       xf[1] - x_cond_final[1,0],
-                       xf[2] - x_cond_final[2,0],
-                       xf[3] - x_cond_final[3,0],
-                       0]); 
+    result = np.array([xf[0] - x_cond_final[0],
+                       xf[1] - x_cond_final[1],
+                       xf[2] - x_cond_final[2],
+                       xf[3] - x_cond_final[3]]); 
 
     return np.linalg.norm(result);
 
@@ -91,7 +90,7 @@ def draw_solution(opti_params, x_cond_init, x_cond_final, M):
     x_array = np.array([]);
     y_array = np.array([]);
 
-    x_current = x_cond_init;
+    x_current = np.matrix(x_cond_init).transpose();
 
 
     for t in np.arange(0,T+dt,dt):
@@ -183,8 +182,8 @@ def find_control(x_cond_init, x_cond_final, M):
 L = 10;
 M = 1;
 v_init = 7;
-x_init = np.matrix([0,-L, 0, v_init]).transpose();
-x_final = np.matrix([L,0, v_init, 0]).transpose();
+x_init = np.array([0,-L, 0, v_init]);
+x_final = np.array([L,0, v_init, 0]);
 
 sol_param = find_control(x_init, x_final, M);
 draw_solution(sol_param, x_init, x_final, M);

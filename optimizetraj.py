@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
 import scipy.integrate as integrate
+import os
 
 # Define the dynamic of the system: X_dot = A*X + B*U
 A = np.matrix('0 0 1 0; 0 0 0 1; 0 0 0 0; 0 0 0 0');
@@ -68,7 +69,7 @@ def func_cons(opti_params):
     return T;
 
 # Draw the solution
-def draw_solution(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, save_csv = False):
+def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, save_csv = False, folder_name=''):
     l1 = float(opti_params[0]);
     l2 = float(opti_params[1]);
     l3 = float(opti_params[2]);
@@ -125,8 +126,8 @@ def draw_solution(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
                          uy_array[0::sub_sampling]]).transpose();
 
         # Create commented first line with all the information
-        param_comment = '# Param mu: %s, Time: %s' %(str(opti_params[0:-1]), opti_params[-1]);
-        cond_comment = '# Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final));
+        param_comment = '# Param [mu_1, mu_2, mu_3, mu_4, time]: %s' %(str(opti_params));
+        cond_comment = '# Initial condition [x_0, y_0, v_x_0, v_y_0]: %s, Final condition [x_f, y_f, v_x_f, v_y_f]: %s ' %(str(x_cond_init), str(x_cond_final));
         accel_comment = '# Maximum acceleration (L2 norm): %d' %(M);
         csv_comment = 't, x, y, vx, vy, ux, uy';
         header_comment = '%s\n%s\n%s\n%s' %(param_comment, cond_comment, accel_comment, csv_comment);
@@ -145,7 +146,15 @@ def draw_solution(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
             else:
                 name_csv = name_csv + str(x_cond_final[i]) + ';';
         name_csv = name_csv + '_' + str(M) + '.csv';
-        
+
+        #Add folder name if necessary
+        if folder_name != '':
+
+            # Create folder if necessary
+            if not os.path.exists(folder_name):
+                os.makedirs(folder_name)
+            name_csv = folder_name +'/'+ name_csv;
+
         # Save as CSV
         np.savetxt(name_csv, data, header=header_comment, fmt='%4.6f',delimiter=',', comments='');
 
@@ -216,26 +225,9 @@ def find_control(x_cond_init, x_cond_final, M):
 
         if np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)) < 0.1:
             print 'Converged: %s' %(np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)));
-            print 'With param mu: %s, Time: %s' %(str(param.x[0:-1]), param.x[-1]);
+            print 'With param [mu_1, mu_2, mu_3, mu_4, time]: %s' %(str(param.x));
             print 'Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final))
             print 'Maximum acceleration (L2 norm): %d' %(M);
             break;
 
     return param.x;
-
-if __name__ == "__main__":
-
-    # Run code for several velocity:
-    L = 10;
-    M = 1;
-    for v_init in np.arange(1, 6, 1):
-
-        # Define init and final state
-        x_init = np.array([0,-L, 0, v_init]);
-        x_final = np.array([L,0, v_init, 0]);
-
-        # Solve the system
-        sol_param = find_control(x_init, x_final, M);
-        
-        # Draw or save the trajectories
-        draw_solution(sol_param, x_init, x_final, M, False, True);

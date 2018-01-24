@@ -116,13 +116,19 @@ def draw_solution(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
     if save_csv:
         # Create data (subsampled):
         sub_sampling = 50;
-        data = np.array([t_array[0::sub_sampling], x_array[0::sub_sampling], y_array[0::sub_sampling], vx_array[0::sub_sampling], vy_array[0::sub_sampling]]).transpose();
+        data = np.array([t_array[0::sub_sampling],\
+                         x_array[0::sub_sampling],\
+                         y_array[0::sub_sampling],\
+                         vx_array[0::sub_sampling],\
+                         vy_array[0::sub_sampling],\
+                         ux_array[0::sub_sampling],\
+                         uy_array[0::sub_sampling]]).transpose();
 
         # Create commented first line with all the information
         param_comment = '# Param mu: %s, Time: %s' %(str(opti_params[0:-1]), opti_params[-1]);
         cond_comment = '# Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final));
         accel_comment = '# Maximum acceleration (L2 norm): %d' %(M);
-        csv_comment = 't, x, y, vx, vy';
+        csv_comment = 't, x, y, vx, vy, ux, uy';
         header_comment = '%s\n%s\n%s\n%s' %(param_comment, cond_comment, accel_comment, csv_comment);
         
         # Create name for the CSV (pretty dirty naming...)
@@ -222,7 +228,7 @@ if __name__ == "__main__":
     # Run code for several velocity:
     L = 10;
     M = 1;
-    for v_init in np.arange(0.5, 6, 0.5):
+    for v_init in np.arange(1, 6, 1):
 
         # Define init and final state
         x_init = np.array([0,-L, 0, v_init]);

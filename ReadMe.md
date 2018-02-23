@@ -1,4 +1,4 @@
-# Optimal Turn-Right Trajectory using Pontryagin's principle
+# Optimal Turn-Right Trajectory using Pontryagin's Maximum Principle
 
 ## Description
 

@@ -1,5 +1,9 @@
+# Classic stuff
 .DS_Store
 *.pyc
+
+# Results
 results/
 
-ve_optimal_traj/
+#Virtual Env
+ve*/

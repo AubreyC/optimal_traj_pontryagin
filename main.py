@@ -8,7 +8,7 @@ def main(args_input):
     # # Parse Arguments
     # ##########################################################
     argparser = argparse.ArgumentParser(
-        description='Optimal Turn-Right Trajectory using Pontryagin\'s Maximum Principle')
+        description='Time Optimal Turn-Right Trajectory using Pontryagin\’s Maximum principle')
     argparser.add_argument(
         '-max_accel',
         type=float,

@@ -1,8 +1,9 @@
 # Optimal Turn-Right Trajectory using Pontryagin's Maximum Principle
 
-## Description
+Optimal control solution to complete a 90 degrees turn right in the minimum amount of time, for a 2D particle controlled in acceleration.
+The solution to this control problem is derived using **Pontryagin’s Maximum Principle**.
 
-Small python script that solve the optimization problem to generate the time optimal trajectory given a maximum allowed acceleration, initial and final conditions. It is based on the application of Pontryagin's Maximum Principle.
+Write-up about the solution can be found here: [Time Optimal Turn-Right Trajectory using Pontryagin’s Maximum principle](Optimal_Trajectory_Pontryagin.pdf)
 
 **Initial Velocity: 10 m/s**
 
@@ -13,8 +14,6 @@ Small python script that solve the optimization problem to generate the time opt
 
 <img src="img/opti_traj_pos_2.png" alt="Position" width="400"/>
 <img src="img/opti_traj_accel_2.png" alt="Acceleration" width="400"/>
-
-## Run the code
 
 Run the code:
 

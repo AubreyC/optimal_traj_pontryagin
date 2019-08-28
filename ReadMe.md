@@ -5,10 +5,12 @@
 Small python script that solve the optimization problem to generate the time optimal trajectory given a maximum allowed acceleration, initial and final conditions. It is based on the application of Pontryagin's Maximum Principle.
 
 **Initial Velocity: 10 m/s**
+
 <img src="img/opti_traj_pos_10.png" alt="Position" width="400"/>
 <img src="img/opti_traj_accel_10.png" alt="Acceleration" width="400"/>
 
 **Initial Velocity: 2 m/s**
+
 <img src="img/opti_traj_pos_2.png" alt="Position" width="400"/>
 <img src="img/opti_traj_accel_2.png" alt="Acceleration" width="400"/>
 

@@ -18,18 +18,18 @@ Write-up about the solution can be found here: [Time Optimal Turn-Right Trajecto
 Run the code:
 
 ```
-	python main.py --help
+python main.py --help
 
-    Optimal Turn-Right Trajectory using Pontryagin's Maximum Principle
+Optimal Turn-Right Trajectory using Pontryagin's Maximum Principle
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      -max_accel MAX_ACCEL  Maximum Acceleration
-      -init_pos INIT_POS    Initial position along Y axis
-      -init_vel [INIT_VEL [INIT_VEL ...]]
-                            Initial velocities
-      -show_figures         Plot results on figures
-      -no_save_csv          Do not save results
-      -output_dir OUTPUT_DIR
-                            Path of the output
+optional arguments:
+  -h, --help            show this help message and exit
+  -max_accel MAX_ACCEL  Maximum Acceleration
+  -init_pos INIT_POS    Initial position along Y axis
+  -init_vel [INIT_VEL [INIT_VEL ...]]
+                        Initial velocities
+  -show_figures         Plot results on figures
+  -no_save_csv          Do not save results
+  -output_dir OUTPUT_DIR
+                        Path of the output
 ```

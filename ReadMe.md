@@ -7,13 +7,11 @@ Write-up about the solution can be found here: [Time Optimal Turn-Right Trajecto
 
 **Initial Velocity: 10 m/s**
 
-<img src="img/opti_traj_pos_10.png" alt="Position" width="400"/>
-<img src="img/opti_traj_accel_10.png" alt="Acceleration" width="400"/>
+<img src="img/opti_traj_pos_10.png" alt="Position" width="400"/> <img src="img/opti_traj_accel_10.png" alt="Acceleration" width="400"/>
 
 **Initial Velocity: 2 m/s**
 
-<img src="img/opti_traj_pos_2.png" alt="Position" width="400"/>
-<img src="img/opti_traj_accel_2.png" alt="Acceleration" width="400"/>
+<img src="img/opti_traj_pos_2.png" alt="Position" width="400"/> <img src="img/opti_traj_accel_2.png" alt="Acceleration" width="400"/>
 
 ## Run the code:
 

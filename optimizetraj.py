@@ -59,7 +59,7 @@ def func(opti_params, x_cond_init, x_cond_final, M):
     result = np.array([xf[0] - x_cond_final[0],
                        xf[1] - x_cond_final[1],
                        xf[2] - x_cond_final[2],
-                       xf[3] - x_cond_final[3]]); 
+                       xf[3] - x_cond_final[3]]);
 
     return np.linalg.norm(result);
 
@@ -136,13 +136,13 @@ def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
         name_csv = 'traj_';
         for i in range(len(x_cond_init)):
             if i == len(x_cond_init) - 1:
-                name_csv = name_csv + str(x_cond_init[i]); 
+                name_csv = name_csv + str(x_cond_init[i]);
             else:
                 name_csv = name_csv + str(x_cond_init[i]) + ';';
         name_csv = name_csv + '_';
         for i in range(len(x_cond_final)):
             if i == len(x_cond_final) - 1:
-                name_csv = name_csv + str(x_cond_final[i]); 
+                name_csv = name_csv + str(x_cond_final[i]);
             else:
                 name_csv = name_csv + str(x_cond_final[i]) + ';';
         name_csv = name_csv + '_' + str(M) + '.csv';
@@ -163,28 +163,35 @@ def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
         plt.figure()
 
         #Control ux
-        plt.subplot(211)
-        plt.plot(np.arange(0,T+dt, dt), ux_array);
-        plt.ylabel('ux')
-        plt.xlabel('time (s)')
+        ax1 = plt.subplot(211)
+        ax1.plot(np.arange(0,T+dt, dt), ux_array);
+        ax1.set_ylabel('ux')
+        ax1.set_xlabel('time (s)')
+        ax1.set_title("Optimal Turn-Right Trajectory: Acceleration X")
 
         #Control uy
-        plt.subplot(212)
-        plt.plot(np.arange(0,T+dt, dt), uy_array);
-        plt.ylabel('uy')
-        plt.xlabel('time (s)')
+        ax2 = plt.subplot(212)
+        ax2.plot(np.arange(0,T+dt, dt), uy_array);
+        ax2.set_ylabel('uy')
+        ax2.set_xlabel('time (s)')
+        ax2.set_title("Optimal Turn-Right Trajectory: Acceleration Y")
 
         # Plotting position and velocity
         plt.figure()
-        fig, ax = plt.subplot(111)
+        plt.title('Optimal Turn-Right Trajectory: Acceleration')
+
+        ax = plt.subplot(111)
         ax.quiver(x_array[0::50], y_array[0::50], vx_array[0::50], vy_array[0::50], units='width')
         ax.plot(x_array, y_array);
 
+        ax.set_aspect('equal')
+        ax.grid(True, which='both')
         ax.axhline(y=0, color='k')
         ax.axvline(x=0, color='k')
 
         ax.set_xlabel('x (m)')
         ax.set_ylabel('y (m)')
+        ax.set_title("Optimal Turn-Right Trajectory: Position")
 
         # Plot control [ux, uy] so it should like like a circle
         # plt.figure()

@@ -30,12 +30,12 @@ def func_accel(t, lam, M, ind):
 # The acceleration by integrating of the control input
 def func_vel(t, lam, M, v0, ind):
     result = integrate.quad(func_accel, 0, t, args=(lam, M, ind));
-    return  result[0] + v0[ind] 
+    return  result[0] + v0[ind]
 
 # The position by integrating of the control velocity
 def func_pos(t, lam, M, x0, v0, ind):
     result = integrate.quad(func_vel, 0, t, args=(lam, M, v0, ind));
-    return result[0] + x0[ind] 
+    return result[0] + x0[ind]
 
 # Compute the trajectory based on the paramaters
 def func(opti_params, x_cond_init, x_cond_final, M):
@@ -69,7 +69,7 @@ def func_cons(opti_params):
     return T;
 
 # Draw the solution
-def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, save_csv = False, folder_name=''):
+def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, save_csv = False, output_dir=''):
     l1 = float(opti_params[0]);
     l2 = float(opti_params[1]);
     l3 = float(opti_params[2]);
@@ -131,7 +131,7 @@ def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
         accel_comment = '# Maximum acceleration (L2 norm): %d' %(M);
         csv_comment = 't, x, y, vx, vy, ux, uy';
         header_comment = '%s\n%s\n%s\n%s' %(param_comment, cond_comment, accel_comment, csv_comment);
-        
+
         # Create name for the CSV (pretty dirty naming...)
         name_csv = 'traj_';
         for i in range(len(x_cond_init)):
@@ -148,22 +148,20 @@ def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
         name_csv = name_csv + '_' + str(M) + '.csv';
 
         #Add folder name if necessary
-        if folder_name != '':
+        os.makedirs(output_dir, exist_ok=True)
 
-            # Create folder if necessary
-            if not os.path.exists(folder_name):
-                os.makedirs(folder_name)
-            name_csv = folder_name +'/'+ name_csv;
+        # Create path csv
+        path_csv =  os.path.join(output_dir, name_csv);
 
         # Save as CSV
-        np.savetxt(name_csv, data, header=header_comment, fmt='%4.6f',delimiter=',', comments='');
+        np.savetxt(path_csv, data, header=header_comment, fmt='%4.6f',delimiter=',', comments='');
 
     # Plot in desired
     if plot_bool:
 
         # Plotting control:
         plt.figure()
-        
+
         #Control ux
         plt.subplot(211)
         plt.plot(np.arange(0,T+dt, dt), ux_array);
@@ -178,18 +176,21 @@ def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
 
         # Plotting position and velocity
         plt.figure()
-        plt.subplot(111)
-        plt.quiver(x_array[0::50], y_array[0::50], vx_array[0::50], vy_array[0::50], units='width')
-        plt.plot(x_array, y_array);
-        plt.ylabel('y (m)')
-        plt.xlabel('x (m)')
+        fig, ax = plt.subplot(111)
+        ax.quiver(x_array[0::50], y_array[0::50], vx_array[0::50], vy_array[0::50], units='width')
+        ax.plot(x_array, y_array);
+
+        ax.axhline(y=0, color='k')
+        ax.axvline(x=0, color='k')
+
+        ax.set_xlabel('x (m)')
+        ax.set_ylabel('y (m)')
 
         # Plot control [ux, uy] so it should like like a circle
         # plt.figure()
         # plt.plot(ux_array, uy_array);
         # plt.ylabel('ux')
         # plt.xlabel('uy')
-        # plt.show();
 
         # Plot velocity
         # plt.figure()
@@ -205,6 +206,8 @@ def generate_traj(opti_params, x_cond_init, x_cond_final, M, plot_bool=False, sa
         # plt.plot(np.arange(0,T+dt, dt), vy_array);
         # plt.ylabel('vy')
         # plt.xlabel('time (s)')
+
+        plt.show();
 
 def find_control(x_cond_init, x_cond_final, M):
 
@@ -224,10 +227,10 @@ def find_control(x_cond_init, x_cond_final, M):
         param = opt.minimize(func, p_init, constraints=cons, args=(x_cond_init, x_cond_final, M))
 
         if np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)) < 0.1:
-            print 'Converged: %s' %(np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M)));
-            print 'With param [mu_1, mu_2, mu_3, mu_4, time]: %s' %(str(param.x));
-            print 'Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final))
-            print 'Maximum acceleration (L2 norm): %d' %(M);
+            print('Converged: %s' %(np.linalg.norm(func(param.x, x_cond_init, x_cond_final, M))));
+            print('With param [mu_1, mu_2, mu_3, mu_4, time]: %s' %(str(param.x)));
+            print('Initial condition: %s, Final condition: %s ' %(str(x_cond_init), str(x_cond_final)));
+            print('Maximum acceleration (L2 norm): %d' %(M));
             break;
 
     return param.x;
